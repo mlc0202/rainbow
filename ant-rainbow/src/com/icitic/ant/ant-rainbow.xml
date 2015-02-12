@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<antlib>
+	<taskdef name="service" classname="com.icitic.ant.Service" />
+	<taskdef name="orderBundle" classname="com.icitic.ant.OrderBundle" />
+	<taskdef name="packExt" classname="com.icitic.ant.ext.PackExt" />
+	<taskdef name="rdm" classname="com.icitic.ant.rdm.Transform" />
+</antlib>
