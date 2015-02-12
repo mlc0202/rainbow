@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Rdm
+Bundle-SymbolicName: com.icitic.rdm;singleton:=true
+Bundle-Version: 1.0.4.qualifier
+Bundle-Activator: com.icitic.rainbow.db.model.Activator
+Bundle-Vendor: ICITIC
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.jface.text,
+ org.eclipse.core.resources,
+ org.eclipse.ui.editors,
+ org.eclipse.ui.ide
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy
