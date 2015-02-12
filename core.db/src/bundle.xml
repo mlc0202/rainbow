@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bundle>
+	<id>core.db</id>
+	<desc>数据库支持核心</desc>
+	<parent>core.cache</parent>
+</bundle>
