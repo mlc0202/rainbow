@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<config xmlns="http://www.icitic.com/core/db/config">
+	<!-- 物理数据源定义示例
+	<physic id="demo">
+		<driverClass>org.h2.Driver</driverClass>
+		<jdbcUrl>jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../rainbow/conf/core.db/create.sql'</jdbcUrl>
+		<username>rainbow</username>
+		<password>rainbow</password>
+		<minConnectionsPerPartition>1</minConnectionsPerPartition>
+		<maxConnectionsPerPartition>2</maxConnectionsPerPartition>
+		<partitionCount>1</partitionCount>
+		<idleConnectionTestPeriod>60</idleConnectionTestPeriod>
+		<idleMaxAge>240</idleMaxAge>
+	</physic>
+	-->
+	<physic id="default">
+		<driverClass>org.h2.Driver</driverClass>
+		<jdbcUrl>jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../rainbow/conf/core.db/create.sql'</jdbcUrl>
+		<username>rainbow</username>
+		<password>rainbow</password>
+	</physic>
+	<logic id="default" physic="default" />
+</config>

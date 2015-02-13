@@ -1,0 +1,151 @@
+<project name="rainbow" default="build" basedir=".">
+	<!-- set global properties for this build -->
+	<property name="version" value="1.0.0" />
+
+	<property environment="env" />
+	<property name="build_id" value="${env.BUILD_NUMBER}" />
+	<property name="build_time" value="${env.BUILD_ID}" />
+	<property name="lib" location="lib" />
+	<property name="dist" location="../dist" />
+	<property name="dist.dev" location="${dist}/dev" />
+	<property name="dist.deploy" location="${dist}/deploy" />
+	<property name="build" location="${dist}/temp" />
+	<property name="report" location="${dist}/report" />
+	<property name="emma.dir" location="${dist}/emma" />
+
+	<path id="ant.classpath">
+		<fileset dir="ant">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<typedef resource="com/icitic/ant/ant-rainbow.xml" classpathref="ant.classpath" />
+	<taskdef resource="emma_ant.properties" classpathref="ant.classpath" />
+
+	<target name="clean">
+		<delete dir="${dist}" />
+	</target>
+
+	<target name="init" depends="clean">
+		<!-- Create the time stamp -->
+		<tstamp>
+			<format property="DSTAMP" pattern="yyyy-MM-dd" />
+			<format property="TSTAMP" pattern="HH:mm:ss" />
+		</tstamp>
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${dist}" />
+		<orderBundle property="bundles" dir=".." />
+		<filelist id="bundles" dir=".." files="${bundles}" />
+	</target>
+
+	<target name="pmd" depends="init" description="do pmd check">
+		<mkdir dir="${report}/pmd" />
+		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask" classpathref="ant.classpath" />
+		<subant target="pmd" genericantfile="common.xml" inheritall="true">
+			<path>
+				<pathelement location="../core" />
+				<filelist refid="bundles" />
+			</path>
+		</subant>
+	</target>
+
+	<macrodef name="build">
+		<attribute name="flag" />
+		<attribute name="failonerror" />
+		<sequential>
+			<mkdir dir="${dist}/@{flag}/lib" />
+			<mkdir dir="${dist}/@{flag}/bundle" />
+			<ant antfile="common.xml" target="build_@{flag}">
+				<property name="root" location="${dist}/@{flag}" />
+				<property name="dest" value="lib" />
+				<property name="basedir" value="../core" />
+			</ant>
+			<subant target="build_@{flag}" genericantfile="common.xml" inheritall="true" failonerror="@{failonerror}">
+				<property name="root" location="${dist}/@{flag}" />
+				<filelist refid="bundles" />
+			</subant>
+			<echo file="${dist}/@{flag}/version.txt" encoding="UTF-8">=== RAINBOW === &#13;&#10;Version:${version}.${build_id}&#13;&#10;Time:${build_time}</echo>
+			<delete dir="${build}" />
+		</sequential>
+	</macrodef>
+
+	<target name="deploy_dev" depends="init" description="build rainbow dev package">
+		<mkdir dir="${report}/junit" />
+		<build flag="dev" failonerror="false" />
+		<copy todir="${dist.dev}/lib">
+			<fileset dir="lib" />
+		</copy>
+		<copy todir="${dist.dev}/ant">
+			<fileset dir="ant" />
+		</copy>
+	</target>
+
+	<target name="deploy" depends="init" description="build rainbow deploy package">
+		<build flag="deploy" failonerror="true" />
+		<ant antfile="common.xml" target="build_deploy">
+			<property name="root" location="${dist.deploy}" />
+			<property name="dest" value="lib" />
+			<property name="basedir" value="../bootstrap" />
+		</ant>
+		<delete dir="${build}" />
+		<copy todir="${dist.deploy}/bin">
+			<fileset dir="bin" />
+		</copy>
+		<copy todir="${dist.deploy}/lib">
+			<fileset dir="lib/jdbc" />
+			<fileset dir="lib" includes="*.jar" />
+		</copy>
+		<mkdir dir="${dist.deploy}/conf/core.db" />
+	</target>
+
+	<target name="merge_report" depends="deploy_dev">
+		<emma>
+			<merge outfile="${emma.dir}/coverage.emma">
+				<fileset dir="${emma.dir}">
+					<include name="*.emma" />
+				</fileset>
+			</merge>
+		</emma>
+	</target>
+
+	<target name="gen_report" depends="merge_report" description="generate junit report and emma report">
+		<pathconvert property="emma.src">
+			<globmapper from="*" to="*/src" />
+			<filelist refid="bundles" />
+		</pathconvert>
+
+		<!--生成代码覆盖率报告 -->
+		<emma enabled="true">
+			<report sourcepath="${emma.src}" sort="+block,+name,+method,+class" metrics="method:70,block:80,line:80,class:100">
+				<fileset dir="${emma.dir}">
+					<include name="*.emma" />
+				</fileset>
+				<html outfile="${report}/coverage.html" encoding="UTF-8" depth="method" columns="name,class,method,block,line" />
+			</report>
+		</emma>
+		<delete dir="${emma.dir}" />
+	</target>
+
+	<target name="javadoc" description="create java doc">
+		<delete dir="${dist}/javadoc" />
+		<javadoc destdir="${dist}/javadoc" author="true" charset="UTF-8" encoding="UTF-8" docencoding="UTF-8" version="true" use="true" windowtitle="Rainbow API" docfilessubdirs="yes" useexternalfile="yes">
+			<classpath>
+				<fileset dir="${lib}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+			<fileset dir="..">
+				<include name="core*/src/**/*.java" />
+				<exclude name="**/com/icitic/Activator.java" />
+			</fileset>
+			<doctitle><![CDATA[<h1>Rainbow</h1>]]></doctitle>
+			<bottom><![CDATA[<i>Copyright &#169; 中信网络科技股份有限公司  All Rights Reserved.</i>]]></bottom>
+		</javadoc>
+	</target>
+
+	<target name="build" depends="pmd, deploy_dev, deploy,gen_report, javadoc" description="build all package" />
+
+</project>
